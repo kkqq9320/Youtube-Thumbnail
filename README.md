@@ -53,7 +53,7 @@ Use [HACS](https://github.com/hacs/integration) or [Download](https://github.com
 6. go to [Next step](#next-step)
 
 ### Manual
-1. [Download](https://github.com/kkqq9320/Monitoring-Unifi-by-Appdaemon/releases/tag/version) source code.zip and unzip.
+1. [Download](https://github.com/kkqq9320/Youtube-Thumbnail/releases) source code.zip and unzip.
 2. go to [Next step](#next-step)
 
 ### Next step
@@ -62,7 +62,7 @@ Use [HACS](https://github.com/hacs/integration) or [Download](https://github.com
 - Add `app_dir: /homeassistant/appdaemon/apps` on `appdaemon.yaml`
 
 #### Copy `youtube_thumbnail.py` on default directory
-1. Copy `Monitoring-Unifi-by-Appdaemon-version/apps/monitoring_unifi.py` or `/homeassistant/appdaemon/apps/Monitoring-Unifi-by-Appdaemon/monitoring_unifi.py`
+1. Copy `Youtube-Thumbnail/apps/youtube_thumbnail.py` or `/homeassistant/appdaemon/apps/Youtube-Thumbnail/youtube_thumbnail.py`
 1. Now you need to take this and paste it into your `addon_config` directory.
 2. Paste file to `/addon_configs/a0d7b954_appdaemon/apps/`
 3. `/addon_config` is one level above `/homeassistant` in the file structure.

@@ -4,9 +4,156 @@
 
 > [!NOTE]
 Thanks to [matt8707](https://github.com/matt8707), I made this project based on [youtube-watching](https://github.com/matt8707/youtube-watching)
+
+<details>
+
+<summary><b>If you prefer not to depend on AppDaemon, or you want to add the `entity_picture` attribute to the Apple TV</b></summary>
+
+  Check [this](https://community.home-assistant.io/t/creating-a-youtube-thumbnail-sensor-in-home-assistant/866552)
+
+  1. A `cookies.txt` file is still required
+  2. Your version of `yt-dlp` must be `2025.03.31` or later. Even if your Home Assistant core version is `2025.4.1`, you still need to update it.
+
+     2-1. Log in to the console window. It’s not an ssh addon or putty!
+
+     2-2. Run `login`
+
+     2-3. Run `docker exec -it homeassistant /bin/bash`
+
+     2-4. Run `pip install -U yt-dlp`
+
+     2-5. Run `python3 -c "import yt_dlp; print(yt_dlp.version.__version__)"` (Verify that the update is complete. If it outputs 2025.03.31, then it’s OK.)
+
+  3. In the `/config(homeassistant)/python(any folder name)/`, create two files: `youtube_thumbnail.py` and `set_entity_picture.py`.
+  4. Insert the following code into `youtube_thumbnail.py`:
+```
+import json
+
+URL = "https://www.youtube.com/feed/history"
+
+ydl_opts = {
+   "cookiefile": "/config/python/.cookies.txt",
+   "skip_download": True,
+   "playlist_items": "1",
+   "quiet": True,
+   "no_warnings": True,
+}
+
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+   info = ydl.extract_info(URL, download=False)
+   data = ydl.sanitize_info(info)
+   entry = data.get("entries", [data])[0]
+   print(
+       json.dumps(
+           {
+               "channel": entry.get("channel"),
+               "title": entry.get("fulltitle"),
+               "video_id": entry.get("id"),
+               "thumbnail": entry.get("thumbnail"),
+               "original_url": entry.get("original_url"),
+           },
+           indent=2,
+       )
+   )
+```
+  5. Insert the following code into set_entity_picture.py:
+    But I found that from secrets import get_secret didn’t work, so I just put the `TOKEN` and `HOST` right in.
+```
+import argparse
+import requests
+from secrets import get_secret
+
+HOST = get_secret("ha_host")
+TOKEN = get_secret("ha_token")
+
+
+def update_entity_picture(entity_id, entity_picture):
+    url = f"{HOST}/api/states/{entity_id}"
+    headers = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        data["attributes"]["entity_picture"] = entity_picture
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 200:
+            print("ok")
+        else:
+            print("Error posting update: ", response.text)
+    else:
+        print("Error retrieving state: ", response.text)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="update entity_picture")
+    parser.add_argument("--entity_id", required=True, help="entity_id")
+    parser.add_argument("--entity_picture", required=True, help="entity_picture")
+    args = parser.parse_args()
+    update_entity_picture(args.entity_id, args.entity_picture)
+```
+  6. Add the following `command_line` sensor to `/config/configuration.yaml:`
+```
+command_line:
+  - sensor:
+      name: youtube_thumbnail
+      command: "python3 /config/python/youtube_thumbnail.py"
+      value_template: "{{ value_json.thumbnail }}"
+      json_attributes:
+        - channel
+        - title
+        - video_id
+        - thumbnail
+        - original_url
+      scan_interval: 86400
+```
+
+  7. Add the following shell_command to `/config/configuration.yaml:`
+```
+shell_command:
+  set_entity_picture: "python3 /config/python/set_entity_picture.py --entity_id '{{ entity_id }}' --entity_picture '{{ entity_picture }}'"
+```
+  8. Create an automation.
+```
+alias: Set youtube entity_picture
+triggers:
+  - trigger: state
+    entity_id:
+      - media_player.sovrum
+      - media_player.vardagsrum
+    to:
+      - playing
+      - paused
+conditions:
+  - condition: template
+    value_template: >
+      {% set entity_id = trigger.entity_id %}
+      {% set youtube = 'sensor.youtube_thumbnail' %}
+
+      {{ is_state_attr(entity_id, 'app_id', 'com.google.ios.youtube')
+      and (state_attr(entity_id, 'media_artist') != state_attr(youtube, 'channel')) 
+      and (state_attr(entity_id, 'media_title') != state_attr(youtube, 'title')) }}
+actions:
+  - action: homeassistant.update_entity
+    data:
+      entity_id:
+        - sensor.youtube_thumbnail
+  - action: shell_command.set_entity_picture
+    data:
+      entity_id: >
+        {{ trigger.entity_id }}
+      entity_picture: >
+        {{ states('sensor.youtube_thumbnail') }}
+mode: single
+```
+  9. It’s done. Now, when you play or pause the Apple TV, the `media_player.apple_tv (used as a trigger in the automation)` will have an `entity_picture` attribute.
+
+
+</details>
+
+
 # Youtube-Thumbnail
 
 Make a thumbnail of a recently watched youtube video on apple tv as a homeassistant sensor 
+
 
 
 ## Prerequisites

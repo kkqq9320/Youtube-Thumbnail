@@ -25,7 +25,8 @@ Thanks to [matt8707](https://github.com/matt8707), I made this project based on 
      2-5. Run `python3 -c "import yt_dlp; print(yt_dlp.version.__version__)"` (Verify that the update is complete. If it outputs 2025.03.31, then it’s OK.)
 
   3. In the `/config(homeassistant)/python(any folder name)/`, create two files: `youtube_thumbnail.py` and `set_entity_picture.py`.
-  4. Insert the following code into `youtube_thumbnail.py`:
+  4. Add the following to `/config/secrets.yaml`: <br>`ha_host: "http://{your_ha_ip}:8123"` <br>`ha_token: "{yout-long-lived-token}"`
+  5. Insert the following code into `youtube_thumbnail.py`:
 ```
 import yt_dlp
 import json
@@ -57,12 +58,15 @@ with yt_dlp.YoutubeDL(ydl_opts) as ydl:
        )
    )
 ```
-  5. Insert the following code into set_entity_picture.py:
+  6. Insert the following code into set_entity_picture.py:
     But I found that from secrets import get_secret didn’t work, so I just put the `TOKEN` and `HOST` right in.
 ```
 import argparse
 import requests
-from secrets import get_secret
+import yaml
+
+with open('/config/secrets.yaml') as f:
+    secrets = yaml.safe_load(f)
 
 HOST = get_secret("ha_host")
 TOKEN = get_secret("ha_token")
@@ -91,7 +95,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     update_entity_picture(args.entity_id, args.entity_picture)
 ```
-  6. Add the following `command_line` sensor to `/config/configuration.yaml:`
+  7. Add the following `command_line` sensor to `/config/configuration.yaml:`
 ```
 command_line:
   - sensor:
@@ -107,12 +111,12 @@ command_line:
       scan_interval: 86400
 ```
 
-  7. Add the following shell_command to `/config/configuration.yaml:`
+  8. Add the following shell_command to `/config/configuration.yaml:`
 ```
 shell_command:
   set_entity_picture: "python3 /config/python/set_entity_picture.py --entity_id '{{ entity_id }}' --entity_picture '{{ entity_picture }}'"
 ```
-  8. Create an automation.
+  9. Create an automation.
 ```
 alias: Set youtube entity_picture
 triggers:
@@ -145,7 +149,7 @@ actions:
         {{ states('sensor.youtube_thumbnail') }}
 mode: single
 ```
-  9. It’s done. Now, when you play or pause the Apple TV, the `media_player.apple_tv (used as a trigger in the automation)` will have an `entity_picture` attribute.
+  10. It’s done. Now, when you play or pause the Apple TV, the `media_player.apple_tv (used as a trigger in the automation)` will have an `entity_picture` attribute.
 
 
 </details>

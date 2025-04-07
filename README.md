@@ -27,6 +27,7 @@ Thanks to [matt8707](https://github.com/matt8707), I made this project based on 
   3. In the `/config(homeassistant)/python(any folder name)/`, create two files: `youtube_thumbnail.py` and `set_entity_picture.py`.
   4. Insert the following code into `youtube_thumbnail.py`:
 ```
+import yt_dlp
 import json
 
 URL = "https://www.youtube.com/feed/history"

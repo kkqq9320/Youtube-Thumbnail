@@ -2,6 +2,12 @@
 [![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-0070ba?style=for-the-badge&logo=paypal&logoColor=white)](https://www.paypal.com/paypalme/kkqq9320)
 [![Buy Me a Coffee](https://img.shields.io/badge/☕%20Buy%20Me%20a%20Coffee-orange?style=for-the-badge)](https://www.buymeacoffee.com/kkqq9320)
 
+> [!IMPORTANT]
+> This repository has been archived and is no longer maintained.
+> Please use [youtube-now-playing-on-apple-tv](https://github.com/kkqq9320/youtube-now-playing-on-apple-tv) instead.
+
+
+
 > [!NOTE]
 Thanks to [matt8707](https://github.com/matt8707), I made this project based on [youtube-watching](https://github.com/matt8707/youtube-watching)
 
